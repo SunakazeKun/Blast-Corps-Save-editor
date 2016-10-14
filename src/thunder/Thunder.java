@@ -30,8 +30,10 @@ public class Thunder {
         }
         
         new EditorForm().setVisible(true);
+        //SaveData save = new SaveData(null);
+        //save.getScientists();
     }
     
-    public static String name = "Blast Corps EEPROM Save Editor v1.0 - by SunakazeKun";
+    public static String name = "Blast Corps EEPROM Save Editor v1.1 - by SunakazeKun";
     public static String icon = "/res/icon.png";
 }

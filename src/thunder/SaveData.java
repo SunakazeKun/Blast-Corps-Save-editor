@@ -22,23 +22,21 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SaveData {
     
-    public SaveData(File file) {
+    public SaveData(File infile) {
         try {
+            file = infile;
+            
             if (file.length() == 512) {
-                this.file = file;
                 if (isBlastCorps()) {
                     fileLoaded = true;
-                    eep = new EEPROM(this.file);
+                    eep = new EEPROM(file);
+                    scientists = new Scientists(eep.scientists);
                 }
-            }
-            else {
-                fileLoaded = false;
             }
         }
         catch (Exception ex) {
@@ -76,7 +74,7 @@ public class SaveData {
         target.put(eep.checksum);       // 0xFC to 0xFF
         target.put(eep.levelTimes);     // 0x100 to 0x1EF
         target.put(eep.language);       // 0x1F0 to 0x1F7
-        target.put(eep.unk1F8);         // 0x1F8 to 0x1FF
+        target.put(eep.gameid);         // 0x1F8 to 0x1FF
         
         try  {
             FileOutputStream out = new FileOutputStream(this.newfile);
@@ -145,40 +143,56 @@ public class SaveData {
         return !(!Arrays.equals(gameid, gameid1) && !Arrays.equals(gameid, gameid2));
     }
     
-    public String getTime(int level) {
-        DecimalFormat df = new DecimalFormat("0.0");
-        df.setDecimalSeparatorAlwaysShown(true);
-        
-        byte[] b = ByteUtils.getBytesFromOffset(level * 4, 4, eep.levelTimes);
+    public String getTime(int i) {
+        byte[] b = ByteUtils.getBytesFromOffset(i * 4, 4, eep.levelTimes);
         float seconds = (float) ByteUtils.bytesToInt(b) / 655360;
         int minutes = (int) seconds / 60;
         seconds -= (minutes * 60);
         
-        // A piece of derpcoded shit... but for now it does the trick...
-        String separator;
-        if (seconds < 10)
-            separator = ":0";
-        else
-            separator = ":";
-        
-        return String.valueOf(minutes) + separator + String.format(df.format(seconds)).replace(",", ".");
+        return String.format(java.util.Locale.US, "%d:%04.1f", minutes, seconds);
     }
     
-    public void setTime(int level, float f) {
+    public void setTime(int i, float f) {
         // nope...
     }
     
     public String getName() {
-        return new String(eep.name).split("\u0000")[0];
+        String s = new String(eep.name).split("\u0000")[0];
+        s = s.replace("#","[0x23]");
+        s = s.replace("&","[0x26]");
+        s = s.replace("*","[0x2A]");
+        s = s.replace(String.valueOf((char)0x7F),"[0x7F]");
+        s = s.replace((char)0x61,'"');
+        s = s.replace((char)0x62,'#');
+        s = s.replace((char)0x64,'*');
+        s = s.replace((char)0x65,'+');
+        s = s.replace((char)0x6B,'=');
+        s = s.replace((char)0x6D,'@');
+        return s;
     }
     
     public void setName(String s) {
+        s = s.replace('"',(char)0x61);
+        s = s.replace('#',(char)0x62);
+        s = s.replace('*',(char)0x64);
+        s = s.replace('+',(char)0x65);
+        s = s.replace('=',(char)0x6B);
+        s = s.replace('@',(char)0x6D);
+        s = s.replace("[0x23]","#");
+        s = s.replace("[0x26]","&");
+        s = s.replace("[0x2A]","*");
+        s = s.replace("[0x7F]",String.valueOf((char)0x7F));
+        
+        s = s.replace("[","");
+        s = s.replace("x","");
+        s = s.replace("]","");
+        
         if (s.length() < 8) {
             String sf = new String(new char[8 - s.length()]).replace("\0", "\u0000");
             s += sf;
         }
-        else if (s.length() > 8)
-            s = s.substring(0, Math.min(s.length(), 8));
+        else if (s.length() >= 8)
+            s = s.substring(0, Math.min(s.length(), 7)) + "\u0000";
         
         eep.name = s.getBytes();
     }
@@ -209,6 +223,9 @@ public class SaveData {
         
         if (eep.event >= 0xB)
             points += carrierMedals * 3;
+        
+        if (platinumMedals == 57)
+            points += 6;
     }
     
     public void makeRank() {
@@ -261,13 +278,13 @@ public class SaveData {
     public boolean fileLoaded;
     public File file, newfile;
     public EEPROM eep;
-    
+    public Scientists scientists;
     public short points, bronzeMedals, silverMedals, goldMedals, platinumMedals, carrierMedals;
     
-    public byte[] gameid1 = ByteUtils.hexStringToBytes("87569AB6CD076AEC");
-    public byte[] gameid2 = ByteUtils.hexStringToBytes("2704197125121981");
+    private final byte[] gameid1 = ByteUtils.hexStringToBytes("87569AB6CD076AEC");
+    private final byte[] gameid2 = ByteUtils.hexStringToBytes("2704197125121981");
     
-    private ArrayList<Integer> carrierLevels = new ArrayList<Integer>() {{
+    private final ArrayList<Integer> carrierLevels = new ArrayList<Integer>() {{
         add(0x0);   // Simian Acres
         add(0x1);   // Angel City
         add(0x2);   // Outland Farm

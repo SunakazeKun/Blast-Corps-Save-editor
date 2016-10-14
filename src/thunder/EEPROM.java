@@ -42,11 +42,12 @@ public class EEPROM {
         levelTimes = ByteUtils.getBytesFromOffset(0x100, 0xF0, data);
         
         // other
-        tutorials = ByteUtils.getBytesFromOffset(0xCE, 0x12, data);
-        cutscenes = data[0xEE];
         controlmode = data[0xF3];
+        cutscenes = data[0xEE];
+        tutorials = ByteUtils.getBytesFromOffset(0xCE, 0x12, data);
         language = ByteUtils.getBytesFromOffset(0x1F0, 0x8, data);
         checksum = ByteUtils.getBytesFromOffset(0xFC,0x4, data);
+        gameid = ByteUtils.getBytesFromOffset(0x1F8, 0x8, data);
         
         // unknown
         unk9 = data[0x9];
@@ -54,12 +55,12 @@ public class EEPROM {
         unkE0 = ByteUtils.getBytesFromOffset(0xE0, 0xE, data);
         unkEF = ByteUtils.getBytesFromOffset(0xEF, 0x4, data);
         unkF4 = ByteUtils.getBytesFromOffset(0xF4, 0x8, data);
-        unk1F8 = ByteUtils.getBytesFromOffset(0x1F8, 0x8, data);
     }
     
-    public byte[] name, money, vehicles;
+    public byte[] name, money, points, vehicles;
     public byte[] levelMedal, levelPaths, levelVehicle, levelTimes;
-    public byte[] points, unkD, unkE0, unkEF, unkF4, unk1F8, tutorials, language, checksum;
+    public byte[] tutorials, language, checksum, gameid;
+    public byte[] unkD, unkE0, unkEF, unkF4;
     public byte unk9;
     public byte rank, event, scientists, selectedLevel, cutscenes, controlmode;
 }

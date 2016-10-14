@@ -22,9 +22,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -33,7 +30,8 @@ public class EditorForm extends javax.swing.JFrame {
 
     public EditorForm() {
         initComponents();
-        populateLists();
+        populateLevelList();
+        txtName.setTransferHandler(null);
     }
 
     private void getSaveData() {
@@ -44,6 +42,7 @@ public class EditorForm extends javax.swing.JFrame {
         updatePoints();
         updateCommPoints();
         
+        cmoLanguage.removeAllItems();
         String lang = save.getLang();
         if (lang.equals("Default")) {
             cmoLanguage.addItem(lang);
@@ -55,7 +54,6 @@ public class EditorForm extends javax.swing.JFrame {
             cmoLanguage.setSelectedItem(lang);
         }
         
-        txtChecksum.setText(String.format("%X", ByteUtils.bytesToInt(save.eep.checksum)));
         txtName.setText(save.getName());
         spnMoney.setValue(ByteUtils.bytesToInt(save.eep.money));
         cmoProgress.setSelectedIndex(save.eep.event);
@@ -67,6 +65,13 @@ public class EditorForm extends javax.swing.JFrame {
         lblGold.setText(String.valueOf(save.goldMedals));
         lblPlatinum.setText(String.valueOf(save.platinumMedals));
         lblCarrier.setText(String.valueOf(save.carrierMedals));
+        
+        chkSArgentTowers.setSelected(save.scientists.hasArgentTowers);
+        chkSIronstoneMine.setSelected(save.scientists.hasIronstoneMine);
+        chkSTempestCity.setSelected(save.scientists.hasTempestCity);
+        chkSOysterHarbor.setSelected(save.scientists.hasOysterHarbor);
+        chkSEbonyCoast.setSelected(save.scientists.hasEbonyCoast);
+        chkSGloryCrossing.setSelected(save.scientists.hasGloryCrossing);
         
         cmoLevel.setSelectedIndex(0);
         cmoLevelMedal.setSelectedIndex(save.eep.levelMedal[cmoLevel.getSelectedIndex()]);
@@ -83,14 +88,19 @@ public class EditorForm extends javax.swing.JFrame {
         save.setName(txtName.getText());
         save.setLang((String)cmoLanguage.getSelectedItem());
         save.setControlMode(cmoControl.getSelectedIndex());
+        
+        save.scientists = new Scientists(chkSArgentTowers.isSelected(), chkSIronstoneMine.isSelected(), chkSTempestCity.isSelected(), chkSOysterHarbor.isSelected(), chkSEbonyCoast.isSelected(), chkSGloryCrossing.isSelected());
+        save.eep.scientists = (byte)save.scientists.mask;
+        
         save.eep.points = ByteUtils.shortToBytes(save.points);
         save.eep.money = ByteUtils.intToBytes((int)spnMoney.getValue());
         save.eep.selectedLevel = (byte)cmoSelectedLevel.getSelectedIndex();
+        
+        txtName.setText(save.getName());
     }
     
     private void componentsEnabled(boolean b) {
         /*
-            This enables or disables components.
             Should be used whenever a file is opened or saved.
         */
         
@@ -101,43 +111,26 @@ public class EditorForm extends javax.swing.JFrame {
         txtLevelTime.setEnabled(b);
         mnuUnlockLevels.setEnabled(b);
         mnuUnlockVehicles.setEnabled(b);
-        mnuUnlockScientists.setEnabled(b);
         mnuUnlockTutorials.setEnabled(b);
         mnuUnlockInfos.setEnabled(b);
         txtName.setEnabled(b);
+        btnNameChars.setEnabled(b);
         spnMoney.setEnabled(b);
         cmoProgress.setEnabled(b);
         cmoSelectedLevel.setEnabled(b);
         cmoControl.setEnabled(b);
         cmoLanguage.setEnabled(b);
+        chkSArgentTowers.setEnabled(b);
+        chkSTempestCity.setEnabled(b);
+        chkSIronstoneMine.setEnabled(b);
+        chkSEbonyCoast.setEnabled(b);
+        chkSGloryCrossing.setEnabled(b);
+        chkSOysterHarbor.setEnabled(b);
     }
     
-    private void populateLists() {
-        /*
-            Populates lists with strings and adds them as items to combo boxes.
-        */
-        
-        cmoLanguage.removeAllItems();
-        
-        populateList("/res/data/levels.txt").stream().forEach((level) -> { cmoSelectedLevel.addItem(level); cmoLevel.addItem(level); });
-        populateList("/res/data/ranks.txt").stream().forEach((rank) -> { cmoRank.addItem(rank); });
-        populateList("/res/data/medals.txt").stream().forEach((medal) -> { cmoLevelMedal.addItem(medal); });
-        populateList("/res/data/vehicles.txt").stream().forEach((vehicle) -> { cmoLevelVehicle.addItem(vehicle); });
-        populateList("/res/data/events.txt").stream().forEach((event) -> { cmoProgress.addItem(event);}) ;
-    }
-    
-    private List<String> populateList(String in) {
-        /*
-            Returns a list of strings which are used for combo boxes.
-            The input file's lines are split into numbers and text.
-            Right now, the numbers are unused and completely ignored,
-            but I will make use of them when I want to sort the combo boxes.
-            * in : The input resource.
-        */
-        
-        List<String> l = new ArrayList();
+    private void populateLevelList() {
         try {
-            InputStream i = Thunder.class.getResourceAsStream(in);
+            InputStream i = Thunder.class.getResourceAsStream("/res/levels.txt");
             BufferedReader r = new BufferedReader(new InputStreamReader(i));
             String s;
             String[] d;
@@ -148,12 +141,26 @@ public class EditorForm extends javax.swing.JFrame {
                 if (s.startsWith("#"))
                     continue;
                 
-                l.add(d[1]);
+                cmoLevel.addItem(d[1]);
+                cmoSelectedLevel.addItem(d[1]);
             }
         }
         catch (Exception ex) {
         }
-        return l;
+    }
+    
+    private String getResourceName(String dir, int index) {
+        String res = "/res/" + dir + "/" + index + ".png";
+        java.net.URL u = Thunder.class.getResource(res);
+        if (u != null)
+            return res;
+        else
+            return "/res/noimage.png";
+    }
+    
+    private void updateLabelIcons() {
+        lblLevelVehicle.setIcon(new javax.swing.ImageIcon(getClass().getResource(getResourceName("vehicles",cmoLevelVehicle.getSelectedIndex()))));
+        lblLevelMedal.setIcon(new javax.swing.ImageIcon(getClass().getResource(getResourceName("medals",cmoLevelMedal.getSelectedIndex()))));
     }
     
     private void updatePoints() {
@@ -186,20 +193,6 @@ public class EditorForm extends javax.swing.JFrame {
         lblCommPoints.setText(String.valueOf(counter));
     }
     
-    private void updateLabelIcons() {
-        lblLevelVehicle.setIcon(new javax.swing.ImageIcon(getClass().getResource(getResourceName("vehicles",cmoLevelVehicle.getSelectedIndex()))));
-        lblLevelMedal.setIcon(new javax.swing.ImageIcon(getClass().getResource(getResourceName("medals",cmoLevelMedal.getSelectedIndex()))));
-    }
-    
-    private String getResourceName(String dir, int index) {
-        String res = "/res/" + dir + "/" + index + ".png";
-        URL u = Thunder.class.getResource(res);
-        if (u != null)
-            return res;
-        else
-            return "/res/noimage.png";
-    }
-    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -229,6 +222,11 @@ public class EditorForm extends javax.swing.JFrame {
         lblCommPoints = new javax.swing.JLabel();
         lblCarrier = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
+        btnNameChars = new javax.swing.JButton();
+        lblControl = new javax.swing.JLabel();
+        cmoControl = new javax.swing.JComboBox<>();
+        cmoLanguage = new javax.swing.JComboBox<>();
+        lblLanguage = new javax.swing.JLabel();
         pneLevel = new javax.swing.JPanel();
         lblLevel = new javax.swing.JLabel();
         cmoLevel = new javax.swing.JComboBox<>();
@@ -240,13 +238,13 @@ public class EditorForm extends javax.swing.JFrame {
         cmoLevelMedal = new javax.swing.JComboBox<>();
         cmoLevelDishes = new javax.swing.JComboBox<>();
         txtLevelTime = new javax.swing.JTextField();
-        pneOther = new javax.swing.JPanel();
-        lblLanguage = new javax.swing.JLabel();
-        lblControl = new javax.swing.JLabel();
-        lblChecksum = new javax.swing.JLabel();
-        cmoLanguage = new javax.swing.JComboBox<>();
-        cmoControl = new javax.swing.JComboBox<>();
-        txtChecksum = new javax.swing.JTextField();
+        pneScientists = new javax.swing.JPanel();
+        chkSArgentTowers = new javax.swing.JCheckBox();
+        chkSTempestCity = new javax.swing.JCheckBox();
+        chkSIronstoneMine = new javax.swing.JCheckBox();
+        chkSEbonyCoast = new javax.swing.JCheckBox();
+        chkSGloryCrossing = new javax.swing.JCheckBox();
+        chkSOysterHarbor = new javax.swing.JCheckBox();
         tbrFooter = new javax.swing.JToolBar();
         fil0 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
         lblDir = new javax.swing.JLabel();
@@ -258,9 +256,10 @@ public class EditorForm extends javax.swing.JFrame {
         subOptions = new javax.swing.JMenu();
         mnuUnlockLevels = new javax.swing.JMenuItem();
         mnuUnlockVehicles = new javax.swing.JMenuItem();
-        mnuUnlockScientists = new javax.swing.JMenuItem();
         mnuUnlockTutorials = new javax.swing.JMenuItem();
         mnuUnlockInfos = new javax.swing.JMenuItem();
+        subAbout = new javax.swing.JMenu();
+        mnuAbout = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -289,8 +288,8 @@ public class EditorForm extends javax.swing.JFrame {
         txtName.setMaximumSize(new java.awt.Dimension(6, 8));
         txtName.setMinimumSize(new java.awt.Dimension(6, 8));
         txtName.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                txtNameKeyReleased(evt);
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtNameKeyTyped(evt);
             }
         });
 
@@ -300,8 +299,10 @@ public class EditorForm extends javax.swing.JFrame {
         txtPoints.setEditable(false);
         txtPoints.setText("0");
 
+        cmoRank.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Rookie Wrecker", "Trained Crusher", "Experienced Ravager", "Decorated Damager", "Professional Razer", "Expert Destroyer", "Gifted Ruiner", "Accomplished Conqueror", "Master Despoiler", "Deomolition Fanatic", "Grand Eradicator", "Heavy Duty Waster", "Total Pulveriser", "Champion Ransacker", "Mechanical Maestro", "Chief Obliterator", "Commanding Desolator", "Supreme Devastator", "Ultimate Annihilator", "Leveling Legend", "Destructive Psychopath", "Mindless Desecrator", "Hysterical  Claustrophobe", "Uncontrollable Madman", "World Class Megalomaniac", "Captain Of Carnage", "Single Minded Chaosmonger", "Grand High Slaughtermaster", "Lunatic Lord Of Havoc", "Armageddon Adept", "You Can Stop Now." }));
         cmoRank.setEnabled(false);
 
+        cmoProgress.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "New game", "Default", "Easy levels finished", "Medium levels finished", "Hard levels finished", "All scientists found", "Shuttle-Clear unlocked", "Moon unlocked", "Moon finished", "Mercuary unlocked", "?", "Unlock time attack mode", "Unlock platinum medals", "All platinum medals collected" }));
         cmoProgress.setEnabled(false);
         cmoProgress.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -329,6 +330,23 @@ public class EditorForm extends javax.swing.JFrame {
         lblCarrier.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/vehicles/0.png"))); // NOI18N
         lblCarrier.setText("0");
 
+        btnNameChars.setText("...");
+        btnNameChars.setEnabled(false);
+        btnNameChars.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNameCharsActionPerformed(evt);
+            }
+        });
+
+        lblControl.setText("Control mode");
+
+        cmoControl.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Normal", "Accelerate with joystick" }));
+        cmoControl.setEnabled(false);
+
+        cmoLanguage.setEnabled(false);
+
+        lblLanguage.setText("Language");
+
         javax.swing.GroupLayout pneGeneralLayout = new javax.swing.GroupLayout(pneGeneral);
         pneGeneral.setLayout(pneGeneralLayout);
         pneGeneralLayout.setHorizontalGroup(
@@ -337,30 +355,6 @@ public class EditorForm extends javax.swing.JFrame {
             .addGroup(pneGeneralLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pneGeneralLayout.createSequentialGroup()
-                        .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblGeneralName)
-                            .addComponent(lblGeneralMoney))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(spnMoney, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
-                            .addComponent(txtName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(pneGeneralLayout.createSequentialGroup()
-                        .addComponent(lblGeneralPoints)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(txtPoints, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneGeneralLayout.createSequentialGroup()
-                        .addComponent(lblGeneralRank)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cmoRank, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneGeneralLayout.createSequentialGroup()
-                        .addComponent(lblGeneralProgress)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cmoProgress, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneGeneralLayout.createSequentialGroup()
-                        .addComponent(lblGeneralLevel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
-                        .addComponent(cmoSelectedLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(pneGeneralLayout.createSequentialGroup()
                         .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pneGeneralLayout.createSequentialGroup()
@@ -372,10 +366,33 @@ public class EditorForm extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(lblPlatinum))
                             .addGroup(pneGeneralLayout.createSequentialGroup()
-                                .addComponent(lblCommPoints)
+                                .addComponent(lblCarrier)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(lblCarrier)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(lblCommPoints)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(pneGeneralLayout.createSequentialGroup()
+                        .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblGeneralName)
+                            .addComponent(lblGeneralMoney)
+                            .addComponent(lblGeneralPoints)
+                            .addComponent(lblGeneralRank)
+                            .addComponent(lblGeneralProgress)
+                            .addComponent(lblGeneralLevel)
+                            .addComponent(lblControl)
+                            .addComponent(lblLanguage))
+                        .addGap(24, 24, 24)
+                        .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(cmoLanguage, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoControl, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneGeneralLayout.createSequentialGroup()
+                                .addComponent(txtName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnNameChars, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(spnMoney, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtPoints, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(cmoRank, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoProgress, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoSelectedLevel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         pneGeneralLayout.setVerticalGroup(
@@ -383,7 +400,8 @@ public class EditorForm extends javax.swing.JFrame {
             .addGroup(pneGeneralLayout.createSequentialGroup()
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblGeneralName)
-                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnNameChars, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblGeneralMoney)
@@ -404,7 +422,15 @@ public class EditorForm extends javax.swing.JFrame {
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cmoSelectedLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblGeneralLevel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblControl)
+                    .addComponent(cmoControl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmoLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblLanguage))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -416,7 +442,7 @@ public class EditorForm extends javax.swing.JFrame {
                 .addGroup(pneGeneralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblCarrier)
                     .addComponent(lblCommPoints))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pneLevel.setBorder(javax.swing.BorderFactory.createTitledBorder("Level"));
@@ -446,6 +472,7 @@ public class EditorForm extends javax.swing.JFrame {
         lblLevelTime.setText("Time");
         lblLevelTime.setIconTextGap(6);
 
+        cmoLevelVehicle.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Default", "Sideswipe", "Thunderfist", "Skyfall", "Ramdozer", "Backlash", "Crane", "Train", "American Dream", "J-Bomb", "Ballista", "Boat (1)", "Unknown", "Police Car", "A-Team Van", "Red Car", "Cyclone Suit", "Boat (2)", "Boat (3)" }));
         cmoLevelVehicle.setEnabled(false);
         cmoLevelVehicle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -453,6 +480,7 @@ public class EditorForm extends javax.swing.JFrame {
             }
         });
 
+        cmoLevelMedal.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Locked", "Bronze", "Silver", "Gold", "Platinum", "Finished", "Red (Unused)", "Green (Unused)", "Unlocked" }));
         cmoLevelMedal.setEnabled(false);
         cmoLevelMedal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -477,12 +505,12 @@ public class EditorForm extends javax.swing.JFrame {
             pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneLevelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pneLevelLayout.createSequentialGroup()
                         .addComponent(lblLevel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cmoLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(cmoLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
                     .addGroup(pneLevelLayout.createSequentialGroup()
                         .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblLevelVehicle)
@@ -490,12 +518,12 @@ public class EditorForm extends javax.swing.JFrame {
                             .addComponent(lblLevelTime)
                             .addComponent(lblLevelMedal))
                         .addGap(14, 14, 14)
-                        .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cmoLevelVehicle, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cmoLevelMedal, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cmoLevelDishes, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtLevelTime))))
-                .addContainerGap())
+                        .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(cmoLevelDishes, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoLevelVehicle, javax.swing.GroupLayout.Alignment.LEADING, 0, 155, Short.MAX_VALUE)
+                            .addComponent(cmoLevelMedal, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtLevelTime))
+                        .addGap(0, 15, Short.MAX_VALUE))))
         );
         pneLevelLayout.setVerticalGroup(
             pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -503,7 +531,7 @@ public class EditorForm extends javax.swing.JFrame {
                 .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(lblLevel)
                     .addComponent(cmoLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblLevelVehicle)
                     .addComponent(cmoLevelVehicle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -521,57 +549,58 @@ public class EditorForm extends javax.swing.JFrame {
                     .addComponent(lblLevelTime)))
         );
 
-        pneOther.setBorder(javax.swing.BorderFactory.createTitledBorder("Other"));
+        pneScientists.setBorder(javax.swing.BorderFactory.createTitledBorder("Scientists"));
 
-        lblLanguage.setText("Language");
+        chkSArgentTowers.setText("Argent Towers");
+        chkSArgentTowers.setEnabled(false);
 
-        lblControl.setText("Control mode");
+        chkSTempestCity.setText("Tempest City");
+        chkSTempestCity.setEnabled(false);
 
-        lblChecksum.setText("Checksum");
+        chkSIronstoneMine.setText("Ironstone Mine");
+        chkSIronstoneMine.setEnabled(false);
 
-        cmoLanguage.setEnabled(false);
+        chkSEbonyCoast.setText("Ebony Coast");
+        chkSEbonyCoast.setEnabled(false);
 
-        cmoControl.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Normal", "Accelerate with joystick" }));
-        cmoControl.setEnabled(false);
+        chkSGloryCrossing.setText("Glory Crossing");
+        chkSGloryCrossing.setEnabled(false);
 
-        txtChecksum.setEditable(false);
-        txtChecksum.setText("00000000");
+        chkSOysterHarbor.setText("Oyster Harbor");
+        chkSOysterHarbor.setEnabled(false);
 
-        javax.swing.GroupLayout pneOtherLayout = new javax.swing.GroupLayout(pneOther);
-        pneOther.setLayout(pneOtherLayout);
-        pneOtherLayout.setHorizontalGroup(
-            pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pneOtherLayout.createSequentialGroup()
+        javax.swing.GroupLayout pneScientistsLayout = new javax.swing.GroupLayout(pneScientists);
+        pneScientists.setLayout(pneScientistsLayout);
+        pneScientistsLayout.setHorizontalGroup(
+            pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pneScientistsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneOtherLayout.createSequentialGroup()
-                        .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblLanguage)
-                            .addComponent(lblChecksum))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cmoLanguage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtChecksum, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneOtherLayout.createSequentialGroup()
-                        .addComponent(lblControl)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cmoControl, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chkSTempestCity)
+                    .addComponent(chkSArgentTowers)
+                    .addComponent(chkSIronstoneMine))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(chkSOysterHarbor, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chkSEbonyCoast, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chkSGloryCrossing, javax.swing.GroupLayout.Alignment.LEADING))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        pneOtherLayout.setVerticalGroup(
-            pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pneOtherLayout.createSequentialGroup()
-                .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblLanguage)
-                    .addComponent(cmoLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        pneScientistsLayout.setVerticalGroup(
+            pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pneScientistsLayout.createSequentialGroup()
+                .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkSArgentTowers)
+                    .addComponent(chkSEbonyCoast))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmoControl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblControl))
-                .addGap(6, 6, 6)
-                .addGroup(pneOtherLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblChecksum)
-                    .addComponent(txtChecksum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkSTempestCity)
+                    .addComponent(chkSGloryCrossing))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(chkSIronstoneMine)
+                    .addComponent(chkSOysterHarbor))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         tbrFooter.setBackground(new java.awt.Color(225, 225, 225));
@@ -582,9 +611,11 @@ public class EditorForm extends javax.swing.JFrame {
         lblDir.setText(" ");
         tbrFooter.add(lblDir);
 
+        subFile.setMnemonic('F');
         subFile.setText("File");
 
         mnuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        mnuOpen.setMnemonic('O');
         mnuOpen.setText("Open");
         mnuOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -594,6 +625,7 @@ public class EditorForm extends javax.swing.JFrame {
         subFile.add(mnuOpen);
 
         mnuSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        mnuSave.setMnemonic('S');
         mnuSave.setText("Save");
         mnuSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -602,6 +634,7 @@ public class EditorForm extends javax.swing.JFrame {
         });
         subFile.add(mnuSave);
 
+        mnuDispose.setMnemonic('C');
         mnuDispose.setText("Close");
         mnuDispose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -612,6 +645,7 @@ public class EditorForm extends javax.swing.JFrame {
 
         mbarGeneral.add(subFile);
 
+        subOptions.setMnemonic('O');
         subOptions.setText("Options");
 
         mnuUnlockLevels.setText("All levels unlocked");
@@ -631,15 +665,6 @@ public class EditorForm extends javax.swing.JFrame {
             }
         });
         subOptions.add(mnuUnlockVehicles);
-
-        mnuUnlockScientists.setText("All scientists found");
-        mnuUnlockScientists.setEnabled(false);
-        mnuUnlockScientists.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuUnlockScientistsActionPerformed(evt);
-            }
-        });
-        subOptions.add(mnuUnlockScientists);
 
         mnuUnlockTutorials.setText("All tutorial cutscenes seen");
         mnuUnlockTutorials.setEnabled(false);
@@ -661,32 +686,46 @@ public class EditorForm extends javax.swing.JFrame {
 
         mbarGeneral.add(subOptions);
 
+        subAbout.setMnemonic('H');
+        subAbout.setText("Help");
+
+        mnuAbout.setMnemonic('A');
+        mnuAbout.setText("About");
+        mnuAbout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuAboutActionPerformed(evt);
+            }
+        });
+        subAbout.add(mnuAbout);
+
+        mbarGeneral.add(subAbout);
+
         setJMenuBar(mbarGeneral);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(tbrFooter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pneGeneral, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(pneLevel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pneOther, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(14, Short.MAX_VALUE))
-            .addComponent(tbrFooter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pneScientists, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(pneLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pneOther, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(pneGeneral, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(pneScientists, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(pneGeneral, javax.swing.GroupLayout.PREFERRED_SIZE, 308, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(tbrFooter, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -694,24 +733,12 @@ public class EditorForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cmoLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelActionPerformed
-        try {
-            cmoLevelMedal.setSelectedIndex(save.eep.levelMedal[cmoLevel.getSelectedIndex()]);
-            cmoLevelVehicle.setSelectedIndex(save.eep.levelVehicle[cmoLevel.getSelectedIndex()]);
-            cmoLevelDishes.setSelectedIndex(save.eep.levelPaths[cmoLevel.getSelectedIndex()]);
-            txtLevelTime.setText(save.getTime(cmoLevel.getSelectedIndex()));
-        }
-        catch (Exception ex) {
-            System.out.println("ERROR: No items found (cmoLevel).");
-        }
-    }//GEN-LAST:event_cmoLevelActionPerformed
-
-    private void txtNameKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNameKeyReleased
-        if (txtName.getText().length() > 7) {
-            txtName.setText(txtName.getText().substring(0, Math.min(txtName.getText().length(), 7)));
-        }
-    }//GEN-LAST:event_txtNameKeyReleased
-
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        setResizable(false);
+        setTitle(Thunder.name);
+        setIconImage(Toolkit.getDefaultToolkit().createImage(Thunder.class.getResource(Thunder.icon)));
+    }//GEN-LAST:event_formWindowOpened
+	
     private void mnuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuOpenActionPerformed
         final JFileChooser fc = new JFileChooser();
         String lastdir = Preferences.userRoot().get("thunder_lastDir", null);
@@ -750,60 +777,49 @@ public class EditorForm extends javax.swing.JFrame {
             
             setSaveData();
             save.saveFile(fc.getSelectedFile());
-            txtChecksum.setText(String.format("%X", ByteUtils.bytesToInt(save.eep.checksum)));
             lblDir.setText("Saved file to " + save.newfile.getAbsolutePath());
         }
     }//GEN-LAST:event_mnuSaveActionPerformed
 
-    private void cmoLevelVehicleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelVehicleActionPerformed
-        try {
-            save.eep.levelVehicle[cmoLevel.getSelectedIndex()] = (byte)cmoLevelVehicle.getSelectedIndex();
-            updateLabelIcons();
-        }
-        catch (Exception ex) {
-            System.out.println("ERROR: No items found (cmoLevelVehicle).");
-        }
-    }//GEN-LAST:event_cmoLevelVehicleActionPerformed
-
-    private void cmoLevelMedalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelMedalActionPerformed
-        try {
-            save.eep.levelMedal[cmoLevel.getSelectedIndex()] = (byte)cmoLevelMedal.getSelectedIndex();
-            updatePoints();
-            updateLabelIcons();
-        }
-        catch (Exception ex) {
-            System.out.println("ERROR: No items found (cmoLevelMedal).");
-        }
-    }//GEN-LAST:event_cmoLevelMedalActionPerformed
-
-    private void cmoLevelDishesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelDishesActionPerformed
-        try {
-            save.eep.levelPaths[cmoLevel.getSelectedIndex()] = (byte)cmoLevelDishes.getSelectedIndex();
-            updateCommPoints();
-        }
-        catch (Exception ex) {
-            System.out.println("ERROR: No items found (cmoLevelDishes).");
-        }
-    }//GEN-LAST:event_cmoLevelDishesActionPerformed
-
+    private void mnuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuAboutActionPerformed
+        JOptionPane.showMessageDialog(null, "An editor for Blast Corps EEPROM savegame files.\nHuge thanks to queueRAM for figuring out how checksums work.", Thunder.name, JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_mnuAboutActionPerformed
+	
     private void mnuDisposeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDisposeActionPerformed
         dispose();
     }//GEN-LAST:event_mnuDisposeActionPerformed
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        setResizable(false);
-        setTitle(Thunder.name);
-        setIconImage(Toolkit.getDefaultToolkit().createImage(Thunder.class.getResource(Thunder.icon)));
-    }//GEN-LAST:event_formWindowOpened
-
-    private void cmoProgressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoProgressActionPerformed
+	private void cmoLevelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelActionPerformed
         try {
-            save.eep.event = (byte) cmoProgress.getSelectedIndex();
-            updatePoints();
+            cmoLevelMedal.setSelectedIndex(save.eep.levelMedal[cmoLevel.getSelectedIndex()]);
+            cmoLevelVehicle.setSelectedIndex(save.eep.levelVehicle[cmoLevel.getSelectedIndex()]);
+            cmoLevelDishes.setSelectedIndex(save.eep.levelPaths[cmoLevel.getSelectedIndex()]);
+            txtLevelTime.setText(save.getTime(cmoLevel.getSelectedIndex()));
         }
         catch (Exception ex) {
-            System.out.println("ERROR: No items found (cmoProgress).");
+            System.out.println("ERROR: No items found (cmoLevel).");
         }
+    }//GEN-LAST:event_cmoLevelActionPerformed
+	
+    private void cmoLevelVehicleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelVehicleActionPerformed
+        save.eep.levelVehicle[cmoLevel.getSelectedIndex()] = (byte)cmoLevelVehicle.getSelectedIndex();
+        updateLabelIcons();
+    }//GEN-LAST:event_cmoLevelVehicleActionPerformed
+
+    private void cmoLevelMedalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelMedalActionPerformed
+        save.eep.levelMedal[cmoLevel.getSelectedIndex()] = (byte)cmoLevelMedal.getSelectedIndex();
+        updatePoints();
+        updateLabelIcons();
+    }//GEN-LAST:event_cmoLevelMedalActionPerformed
+
+    private void cmoLevelDishesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoLevelDishesActionPerformed
+        save.eep.levelPaths[cmoLevel.getSelectedIndex()] = (byte)cmoLevelDishes.getSelectedIndex();
+        updateCommPoints();
+    }//GEN-LAST:event_cmoLevelDishesActionPerformed
+
+    private void cmoProgressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmoProgressActionPerformed
+        save.eep.event = (byte) cmoProgress.getSelectedIndex();
+        updatePoints();
     }//GEN-LAST:event_cmoProgressActionPerformed
 
     private void mnuUnlockLevelsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuUnlockLevelsActionPerformed
@@ -824,11 +840,6 @@ public class EditorForm extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(null, "Unlocked all vehicles.", Thunder.name, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_mnuUnlockVehiclesActionPerformed
 
-    private void mnuUnlockScientistsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuUnlockScientistsActionPerformed
-        save.eep.scientists = 0x3F;
-        JOptionPane.showMessageDialog(null, "Unlocked all six scientists.", Thunder.name, JOptionPane.INFORMATION_MESSAGE);
-    }//GEN-LAST:event_mnuUnlockScientistsActionPerformed
-
     private void mnuUnlockTutorialsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuUnlockTutorialsActionPerformed
         save.eep.cutscenes = 0x1F;
         JOptionPane.showMessageDialog(null, "Set all training cutscenes as watched.", Thunder.name, JOptionPane.INFORMATION_MESSAGE);
@@ -839,10 +850,36 @@ public class EditorForm extends javax.swing.JFrame {
             save.eep.tutorials[i] = 0x1;
         JOptionPane.showMessageDialog(null, "Set all tutorials as seen.", Thunder.name, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_mnuUnlockInfosActionPerformed
+
+    private void btnNameCharsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNameCharsActionPerformed
+        Object[] possibilities = {"(none)","[0x23] Cursor", "[0x26] Space (alt.)", "[0x2A] Glitch", "[0x7F] Delete"};
+        String out = (String)JOptionPane.showInputDialog(null, "", "Add special character", JOptionPane.PLAIN_MESSAGE, null, possibilities, "(none)");
+        if (out != null && out.length() > 0 && !out.equals("(none)")) {
+            try {
+                txtName.getDocument().insertString(txtName.getCaretPosition(), out.split(" ")[0], null);
+            }
+            catch (Exception ex) {
+            }
+        }
+    }//GEN-LAST:event_btnNameCharsActionPerformed
+
+    private void txtNameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNameKeyTyped
+        char c = evt.getKeyChar();
+        if (c != ' ' && c != '!' && c != '$' && c != '%' && c != '\'' && c != '(' && c != ')' && c != ',' && c != '-' && c != '.' && c != '/' && c != '?' && c != '"' && c != '#' && c != '*' && c != '+' && c != '=' && c != '@' && ((c < '0') || (c > ':')) && ((c < 'A') || (c > 'Z')) && ((c < 'a') || (c > 'z')) && (c != java.awt.event.KeyEvent.VK_BACK_SPACE))
+            evt.consume();
+        evt.setKeyChar(Character.toUpperCase(c));
+    }//GEN-LAST:event_txtNameKeyTyped
     
     private SaveData save;
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnNameChars;
+    private javax.swing.JCheckBox chkSArgentTowers;
+    private javax.swing.JCheckBox chkSEbonyCoast;
+    private javax.swing.JCheckBox chkSGloryCrossing;
+    private javax.swing.JCheckBox chkSIronstoneMine;
+    private javax.swing.JCheckBox chkSOysterHarbor;
+    private javax.swing.JCheckBox chkSTempestCity;
     private javax.swing.JComboBox<String> cmoControl;
     private javax.swing.JComboBox<String> cmoLanguage;
     private javax.swing.JComboBox<String> cmoLevel;
@@ -856,7 +893,6 @@ public class EditorForm extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JLabel lblBronze;
     private javax.swing.JLabel lblCarrier;
-    private javax.swing.JLabel lblChecksum;
     private javax.swing.JLabel lblCommPoints;
     private javax.swing.JLabel lblControl;
     private javax.swing.JLabel lblDir;
@@ -876,22 +912,22 @@ public class EditorForm extends javax.swing.JFrame {
     private javax.swing.JLabel lblPlatinum;
     private javax.swing.JLabel lblSilver;
     private javax.swing.JMenuBar mbarGeneral;
+    private javax.swing.JMenuItem mnuAbout;
     private javax.swing.JMenuItem mnuDispose;
     private javax.swing.JMenuItem mnuOpen;
     private javax.swing.JMenuItem mnuSave;
     private javax.swing.JMenuItem mnuUnlockInfos;
     private javax.swing.JMenuItem mnuUnlockLevels;
-    private javax.swing.JMenuItem mnuUnlockScientists;
     private javax.swing.JMenuItem mnuUnlockTutorials;
     private javax.swing.JMenuItem mnuUnlockVehicles;
     private javax.swing.JPanel pneGeneral;
     private javax.swing.JPanel pneLevel;
-    private javax.swing.JPanel pneOther;
+    private javax.swing.JPanel pneScientists;
     private javax.swing.JSpinner spnMoney;
+    private javax.swing.JMenu subAbout;
     private javax.swing.JMenu subFile;
     private javax.swing.JMenu subOptions;
     private javax.swing.JToolBar tbrFooter;
-    private javax.swing.JTextField txtChecksum;
     private javax.swing.JTextField txtLevelTime;
     private javax.swing.JTextField txtName;
     private javax.swing.JTextField txtPoints;
