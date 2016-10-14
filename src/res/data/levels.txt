@@ -1,0 +1,60 @@
+0,Simian Acres
+1,Angel City
+2,Outland Farm
+3,Blackridge Works
+4,Glory Crossing
+5,Shuttle Gully
+6,Salvage Wharf
+7,Skyfall
+8,Twilight Foundry
+9,Crystal Rift
+10,Argent Towers
+11,Skerries
+12,Diamond Sands
+13,Ebony Coast
+14,Oyster Harbor
+15,Carrick Point
+16,Havoc District
+17,Ironstone Mine
+18,Beeton Tracks
+19,J-Bomb
+20,Jade Plateau
+21,Marine Quarter
+22,Cooter Creek
+23,Gibbon's Gate
+24,Baboon Catacomb
+25,Sleek Streets
+26,Obsidian Mile
+27,Corvine Bluff
+28,Sideswipe
+29,Echo Marches
+30,Kipling Plant
+31,Falchion Field
+32,Morgan Hall
+33,Tempest City
+34,Orion Plaza
+35,Glander's Ranch
+36,Dagger Pass
+37,Geode Square
+38,Shuttle Island
+39,Mica Park
+40,Moon
+41,Cobalt Quarry
+42,Moraine Chase
+43,Mercury
+44,Venus
+45,Mars
+46,Neptune
+47,CMO Intro
+48,Silver Junction
+49,End Sequence
+50,Shuttle Clear
+51,Dark Heartland
+52,Magma Peak
+53,Thunderfist
+54,Saline Watch
+55,Backlash
+56,Bison Ridge
+57,Ember Hamlet
+58,Cromlech Court
+59,Lizard Island

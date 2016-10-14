@@ -1,0 +1,19 @@
+0,Default
+1,Sideswipe
+2,Thunderfist
+3,Skyfall
+4,Ramdozer
+5,Backlash
+6,Crane
+7,Train
+8,American Dream
+9,J-Bomb
+10,Ballista
+11,Boat (1)
+12,Unknown
+13,Police Car
+14,A-Team Van
+15,Red Car
+16,Cyclone Suit
+17,Boat (2)
+18,Boat (3)

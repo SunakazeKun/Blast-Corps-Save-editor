@@ -1,0 +1,31 @@
+0,Rookie Wrecker
+1,Trained Crusher
+2,Experienced Ravager
+3,Decorated Damager
+4,Professional Razer
+5,Expert Destroyer
+6,Gifted Ruiner
+7,Accomplished Conqueror
+8,Master Despoiler
+9,Deomolition Fanatic
+10,Grand Eradicator
+11,Heavy Duty Waster
+12,Total Pulveriser
+13,Champion Ransacker
+14,Mechanical Maestro
+15,Chief Obliterator
+16,Commanding Desolator
+17,Supreme Devastator
+18,Ultimate Annihilator
+19,Leveling Legend
+20,Destructive Psychopath
+21,Mindless Desecrator
+22,Hysterical  Claustrophobe
+23,Uncontrollable Madman
+24,World Class Megalomaniac
+25,Captain Of Carnage
+26,Single Minded Chaosmonger
+27,Grand High Slaughtermaster
+28,Lunatic Lord Of Havoc
+29,Armageddon Adept
+30,You Can Stop Now.
