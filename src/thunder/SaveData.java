@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2016 Aurum
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 Aurum
+    
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package thunder;
@@ -35,7 +35,6 @@ public class SaveData {
                 if (isBlastCorps()) {
                     fileLoaded = true;
                     eep = new EEPROM(file);
-                    scientists = new Scientists(eep.scientists);
                 }
             }
         }
@@ -43,6 +42,10 @@ public class SaveData {
             fileLoaded = false;
             System.out.println("A problem occured while trying to load the file:\n\n" + ex);
         }
+    }
+    
+    public SaveData() {
+        fileLoaded = false;
     }
     
     public void saveFile(File newfile) {
@@ -59,11 +62,11 @@ public class SaveData {
         target.put(eep.unkD);           // 0xD to 0xF
         target.put(eep.vehicles);       // 0x10 to 0x13
         target.put(eep.money);          // 0x14 to 0x17
-        target.put(eep.levelMedal);     // 0x18 to 0x53
+        target.put(eep.levelMedals);     // 0x18 to 0x53
         target.put(eep.levelPaths);     // 0x54 to 0x8F
         target.put(eep.scientists);     // 0x90
         target.put(eep.event);          // 0x91
-        target.put(eep.levelVehicle);   // 0x92 to 0xCD
+        target.put(eep.levelVehicles);   // 0x92 to 0xCD
         target.put(eep.tutorials);      // 0xCE to 0xDF
         target.put(eep.unkE0);          // 0xE0 to 0xED
         target.put(eep.cutscenes);      // 0xEE
@@ -74,7 +77,7 @@ public class SaveData {
         target.put(eep.checksum);       // 0xFC to 0xFF
         target.put(eep.levelTimes);     // 0x100 to 0x1EF
         target.put(eep.language);       // 0x1F0 to 0x1F7
-        target.put(eep.gameid);         // 0x1F8 to 0x1FF
+        target.put(eep.saveType);         // 0x1F8 to 0x1FF
         
         try  {
             FileOutputStream out = new FileOutputStream(this.newfile);
@@ -140,20 +143,65 @@ public class SaveData {
         byte[] data = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
         byte[] gameid = ByteUtils.getBytesFromOffset(0x1F8, 0x8, data);
         
-        return !(!Arrays.equals(gameid, gameid1) && !Arrays.equals(gameid, gameid2));
+        return !(!Arrays.equals(gameid, S_T_FROM_MENU) && !Arrays.equals(gameid, S_T_FROM_LEVEL_END));
     }
     
-    public String getTime(int i) {
-        byte[] b = ByteUtils.getBytesFromOffset(i * 4, 4, eep.levelTimes);
-        float seconds = (float) ByteUtils.bytesToInt(b) / 655360;
-        int minutes = (int) seconds / 60;
-        seconds -= (minutes * 60);
+    public void makePoints() {
+        bronzeMedals = 0;
+        silverMedals = 0;
+        goldMedals = 0;
+        platinumMedals = 0;
+        carrierMedals = 0;
         
-        return String.format(java.util.Locale.US, "%d:%04.1f", minutes, seconds);
+        for (byte medal : eep.levelMedals) {
+            switch (medal) {
+                case 1: bronzeMedals++; break;
+                case 2: silverMedals++; break;
+                case 3: goldMedals++; break;
+                case 4: platinumMedals++; break;
+            }
+        }
+        
+        for (int carrier : carrierLevels) {
+            if ((eep.levelMedals[carrier] > 0x0) && (eep.levelMedals[carrier] < 0x6))
+                carrierMedals++;
+        }
+        
+        goldMedals += carrierMedals;
+        points = (short) (bronzeMedals + (silverMedals * 2) + (goldMedals * 3) + (platinumMedals * 4));
+        
+        if (eep.event >= 0xB)
+            points += carrierMedals * 3;
+        
+        if (platinumMedals == 57)
+            points += 6;
     }
     
-    public void setTime(int i, float f) {
-        // nope...
+    public void makeRank() {
+        int i = points / 12;
+        if (i > 30)
+            eep.rank = 0x1E;
+        else
+            eep.rank = (byte) i;
+    }
+    
+    public int[] getTime(int level) {
+        byte[] b = ByteUtils.getBytesFromOffset(level * 4, 4, eep.levelTimes);
+        float f = (float) ByteUtils.bytesToInt(b) / 655360f;
+        
+        int minutes = (int) f / 60;
+        int seconds = (int) f - (minutes * 60);
+        int milliseconds = (int) ((f - (int) f) * 10);
+        
+        int[] time = {minutes, seconds, milliseconds};
+        return time;
+    }
+    
+    public void setTime(int level, int minutes, int seconds, int milliseconds) {
+        float f = (minutes * 60f + seconds + milliseconds / 10f + 0.033f) * 655360f;
+        byte[] b = ByteUtils.intToBytes((int)f);
+        for (int i = 0 ; i < 4 ; i++)
+            eep.levelTimes[level * 4 + i] = b[i];
     }
     
     public String getName() {
@@ -196,44 +244,68 @@ public class SaveData {
         
         eep.name = s.getBytes();
     }
-     
-    public void makePoints() {
-        bronzeMedals = 0;
-        silverMedals = 0;
-        goldMedals = 0;
-        platinumMedals = 0;
-        carrierMedals = 0;
-        
-        for (byte medal : eep.levelMedal) {
-            switch (medal) {
-                case 1: bronzeMedals++; break;
-                case 2: silverMedals++; break;
-                case 3: goldMedals++; break;
-                case 4: platinumMedals++; break;
-            }
-        }
-        
-        for (int carrier : carrierLevels) {
-            if ((eep.levelMedal[carrier] > 0x0) && (eep.levelMedal[carrier] < 0x6))
-                carrierMedals++;
-        }
-        
-        goldMedals += carrierMedals;
-        points = (short) (bronzeMedals + (silverMedals * 2) + (goldMedals * 3) + (platinumMedals * 4));
-        
-        if (eep.event >= 0xB)
-            points += carrierMedals * 3;
-        
-        if (platinumMedals == 57)
-            points += 6;
+    
+    public void getScientists() {
+        int mask = eep.scientists;
+        hasArgentTowers = ((mask & S_ARGENT_TOWERS) != 0);
+        hasIronstoneMine = ((mask & S_IRONSTONE_MINE) != 0);
+        hasTempestCity = ((mask & S_TEMPEST_CITY) != 0);
+        hasOysterHarbor = ((mask & S_OYSTER_HARBOR) != 0);
+        hasEbonyCoast = ((mask & S_EBONY_COAST) != 0);
+        hasGloryCrossing = ((mask & S_GLORY_CROSSING) != 0);
     }
     
-    public void makeRank() {
-        int i = points / 12;
-        if (i > 30)
-            eep.rank = 0x1E;
-        else
-            eep.rank = (byte) i;
+    public void setScientists(boolean[] b) {
+        hasArgentTowers = b[0];
+        hasIronstoneMine = b[1];
+        hasTempestCity = b[2];
+        hasOysterHarbor = b[3];
+        hasEbonyCoast = b[4];
+        hasGloryCrossing = b[5];
+        
+        int mask = 0;
+        if (hasArgentTowers) mask ^= S_ARGENT_TOWERS;
+        if (hasIronstoneMine) mask ^= S_IRONSTONE_MINE;
+        if (hasTempestCity) mask ^= S_TEMPEST_CITY;
+        if (hasOysterHarbor) mask ^= S_OYSTER_HARBOR;
+        if (hasEbonyCoast) mask ^= S_EBONY_COAST;
+        if (hasGloryCrossing) mask ^= S_GLORY_CROSSING;
+        
+        eep.scientists = (byte) mask;
+    }
+    
+    public void getVehicles() {
+        int mask = ByteUtils.bytesToInt(eep.vehicles);
+        hasAmericanDream = ((mask & V_AMERICAN_DREAM) != 0);
+        hasPoliceCar = ((mask & V_POLICE_CAR) != 0);
+        hasATeamVan = ((mask & V_A_TEAM_VAN) != 0);
+        hasHotrod = ((mask & V_HOTROD) != 0);
+        
+        hasCrane = ((mask & V_CRANE) != 0);
+        hasTrain = ((mask & V_TRAIN) != 0);
+        hasBoat1 = ((mask & V_BOAT_1) != 0);
+        hasBoat2 = ((mask & V_BOAT_2) != 0);
+        hasBoat3 = ((mask & V_BOAT_3) != 0);
+    }
+    
+    public void setVehicles(boolean[] b) {
+        hasAmericanDream = b[0];
+        hasPoliceCar = b[1];
+        hasATeamVan = b[2];
+        hasHotrod = b[3];
+        
+        int mask = 67134;
+        if (hasAmericanDream) mask ^= V_AMERICAN_DREAM;
+        if (hasPoliceCar) mask ^= V_POLICE_CAR;
+        if (hasATeamVan) mask ^= V_A_TEAM_VAN;
+        if (hasHotrod) mask ^= V_HOTROD;
+        if (hasCrane) mask ^= V_CRANE;
+        if (hasTrain) mask ^= V_TRAIN;
+        if (hasBoat1) mask ^= V_BOAT_1;
+        if (hasBoat2) mask ^= V_BOAT_2;
+        if (hasBoat3) mask ^= V_BOAT_3;
+        
+        eep.vehicles = ByteUtils.intToBytes(mask);
     }
     
     public String getLang() {
@@ -250,13 +322,13 @@ public class SaveData {
     public void setLang(String lang) {
         switch (lang) {
             case "English":
-                eep.language = ByteUtils.hexStringToBytes("1982198219821982");
+                eep.language = L_ENGLISH;
                 break;
             case "German":
-                eep.language = ByteUtils.hexStringToBytes("1945194519451945");
+                eep.language = L_GERMAN;
                 break;
             default:
-                eep.language = ByteUtils.hexStringToBytes("0000000000000000");
+                eep.language = L_DEFAULT;
                 break;
         }
     }
@@ -275,14 +347,38 @@ public class SaveData {
             eep.controlmode = 0x0;
     }
     
-    public boolean fileLoaded;
+    public boolean fileLoaded = false;
     public File file, newfile;
     public EEPROM eep;
-    public Scientists scientists;
+    
     public short points, bronzeMedals, silverMedals, goldMedals, platinumMedals, carrierMedals;
     
-    private final byte[] gameid1 = ByteUtils.hexStringToBytes("87569AB6CD076AEC");
-    private final byte[] gameid2 = ByteUtils.hexStringToBytes("2704197125121981");
+    public boolean hasAmericanDream, hasPoliceCar, hasATeamVan, hasHotrod, hasCrane, hasTrain, hasBoat1, hasBoat2, hasBoat3 = false;
+    public boolean hasArgentTowers, hasIronstoneMine, hasTempestCity, hasOysterHarbor, hasEbonyCoast, hasGloryCrossing = false;
+    
+    private final int S_ARGENT_TOWERS = 1;
+    private final int S_IRONSTONE_MINE = 2;
+    private final int S_TEMPEST_CITY = 4;
+    private final int S_OYSTER_HARBOR = 8;
+    private final int S_EBONY_COAST = 16;
+    private final int S_GLORY_CROSSING = 32;
+    
+    private final int V_AMERICAN_DREAM = 256;
+    private final int V_POLICE_CAR = 8192;
+    private final int V_A_TEAM_VAN = 16384;
+    private final int V_HOTROD = 32768;
+    private final int V_TRAIN = 128;
+    private final int V_CRANE = 64;
+    private final int V_BOAT_1 = 2048;
+    private final int V_BOAT_2 = 131072;
+    private final int V_BOAT_3 = 262144;
+    
+    private final byte[] L_DEFAULT = ByteUtils.hexStringToBytes("0000000000000000");
+    private final byte[] L_ENGLISH = ByteUtils.hexStringToBytes("1982198219821982");
+    private final byte[] L_GERMAN = ByteUtils.hexStringToBytes("1945194519451945");
+    
+    private final byte[] S_T_FROM_MENU = ByteUtils.hexStringToBytes("87569AB6CD076AEC");
+    private final byte[] S_T_FROM_LEVEL_END = ByteUtils.hexStringToBytes("2704197125121981");
     
     private final ArrayList<Integer> carrierLevels = new ArrayList<Integer>() {{
         add(0x0);   // Simian Acres

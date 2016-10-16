@@ -1,30 +1,27 @@
 /*
- * Copyright (C) 2016 Aurum
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+    Copyright (C) 2016 Aurum
+    
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package thunder;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class ByteUtils {
     
-    public static byte[] getBytesFromOffset(int s, int l, byte[] d) {
+    public static byte[] getBytesFromOffset(int offset, int length, byte[] data) {
         /*
             Returns an array of bytes from a given offset.
             * s :   Offset
@@ -32,12 +29,11 @@ public class ByteUtils {
             * d :   Data
         */
         
-        List<Byte> b = new ArrayList();
-        for (int i = 0 ; i < l ; i++)
-            b.add(d[s + i]);
-        Byte[] b2 = b.toArray(new Byte[b.size()]);
+        byte[] b = new byte[length];
+        for (int i = 0 ; i < length ; i++)
+            b[i] = data[offset + i];
         
-        return ArrayUtils.toPrimitive(b2);
+        return b;
     }
     
     public static byte[] hexStringToBytes(String in) {
