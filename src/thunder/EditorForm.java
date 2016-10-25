@@ -1,18 +1,18 @@
 /*
-    Copyright (C) 2016 Aurum
-    
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+  Copyright (C) 2016 Aurum
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package thunder;
@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -204,6 +205,19 @@ public class EditorForm extends javax.swing.JFrame {
             }
         }
         lblCommPoints.setText(String.valueOf(counter));
+    }
+    
+    private void updateLevelTime() {
+        if ((int) spnLevelTimeMin.getValue() >= 54) {
+            spnLevelTimeMin.setValue(54);
+            
+            if ((int) spnLevelTimeSec.getValue() >= 36) {
+                spnLevelTimeSec.setValue(36);
+                
+                if ((int) spnLevelTimeMil.getValue() >= 7)
+                    spnLevelTimeMil.setValue(7);
+            }
+        }
     }
     
     /**
@@ -562,14 +576,31 @@ public class EditorForm extends javax.swing.JFrame {
             }
         });
 
-        spnLevelTimeMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 50, 1));
+        spnLevelTimeMin.setModel(new javax.swing.SpinnerNumberModel(0, 0, 109, 1));
         spnLevelTimeMin.setEnabled(false);
+        spnLevelTimeMin.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spnLevelTimeMinStateChanged(evt);
+            }
+        });
 
         spnLevelTimeSec.setModel(new javax.swing.SpinnerNumberModel(0, 0, 59, 1));
         spnLevelTimeSec.setEnabled(false);
+        spnLevelTimeSec.setMinimumSize(new java.awt.Dimension(47, 20));
+        spnLevelTimeSec.setPreferredSize(new java.awt.Dimension(47, 20));
+        spnLevelTimeSec.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spnLevelTimeSecStateChanged(evt);
+            }
+        });
 
         spnLevelTimeMil.setModel(new javax.swing.SpinnerNumberModel(0, 0, 9, 1));
         spnLevelTimeMil.setEnabled(false);
+        spnLevelTimeMil.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spnLevelTimeMilStateChanged(evt);
+            }
+        });
 
         lblLevelTimeSep1.setText(":");
 
@@ -587,15 +618,14 @@ public class EditorForm extends javax.swing.JFrame {
         pneLevel.setLayout(pneLevelLayout);
         pneLevelLayout.setHorizontalGroup(
             pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pneLevelLayout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneLevelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(pneLevelLayout.createSequentialGroup()
                         .addComponent(lblLevel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cmoLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(pneLevelLayout.createSequentialGroup()
+                        .addComponent(cmoLevel, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pneLevelLayout.createSequentialGroup()
                         .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblLevelVehicle)
                             .addComponent(lblLevelDishes)
@@ -603,9 +633,9 @@ public class EditorForm extends javax.swing.JFrame {
                             .addComponent(lblLevelMedal))
                         .addGap(16, 16, 16)
                         .addGroup(pneLevelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cmoLevelDishes, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cmoLevelMedal, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cmoLevelVehicle, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnLevelTimeSet, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoLevelMedal, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmoLevelDishes, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneLevelLayout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(spnLevelTimeMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -616,10 +646,8 @@ public class EditorForm extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblLevelTimeSep2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spnLevelTimeMil, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pneLevelLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnLevelTimeSet, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(spnLevelTimeMil, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(cmoLevelVehicle, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         pneLevelLayout.setVerticalGroup(
@@ -648,9 +676,9 @@ public class EditorForm extends javax.swing.JFrame {
                     .addComponent(spnLevelTimeMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblLevelTimeSep1)
                     .addComponent(lblLevelTimeSep2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnLevelTimeSet, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pneScientists.setBorder(javax.swing.BorderFactory.createTitledBorder("Scientists"));
@@ -683,12 +711,12 @@ public class EditorForm extends javax.swing.JFrame {
                     .addComponent(chkSTempestCity)
                     .addComponent(chkSArgentTowers)
                     .addComponent(chkSIronstoneMine))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(chkSOysterHarbor, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(chkSEbonyCoast, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(chkSGloryCrossing, javax.swing.GroupLayout.Alignment.LEADING))
-                .addContainerGap(31, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pneScientistsLayout.setVerticalGroup(
             pneScientistsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -816,9 +844,9 @@ public class EditorForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(pneGeneral, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(pneLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pneScientists, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(pneLevel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pneScientists, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -981,7 +1009,9 @@ public class EditorForm extends javax.swing.JFrame {
     }//GEN-LAST:event_txtNameKeyTyped
 
     private void btnLevelTimeSetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLevelTimeSetActionPerformed
-        save.setTime(cmoLevel.getSelectedIndex(), (int)spnLevelTimeMin.getValue(), (int)spnLevelTimeSec.getValue(), (int)spnLevelTimeMil.getValue());
+        updateLevelTime();
+        int[] time = { (int)spnLevelTimeMin.getValue(), (int)spnLevelTimeSec.getValue(), (int)spnLevelTimeMil.getValue() };
+        save.setTime(cmoLevel.getSelectedIndex(), time);
     }//GEN-LAST:event_btnLevelTimeSetActionPerformed
 
     private void mnuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSaveActionPerformed
@@ -991,6 +1021,18 @@ public class EditorForm extends javax.swing.JFrame {
             lblDir.setText("Saved file to " + save.newfile.getAbsolutePath());
         }
     }//GEN-LAST:event_mnuSaveActionPerformed
+
+    private void spnLevelTimeMinStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spnLevelTimeMinStateChanged
+        updateLevelTime();
+    }//GEN-LAST:event_spnLevelTimeMinStateChanged
+
+    private void spnLevelTimeSecStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spnLevelTimeSecStateChanged
+        updateLevelTime();
+    }//GEN-LAST:event_spnLevelTimeSecStateChanged
+
+    private void spnLevelTimeMilStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spnLevelTimeMilStateChanged
+        updateLevelTime();
+    }//GEN-LAST:event_spnLevelTimeMilStateChanged
     
     private SaveData save = new SaveData();
     

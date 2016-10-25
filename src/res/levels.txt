@@ -1,60 +1,60 @@
-0,Simian Acres
-1,Angel City
-2,Outland Farm
-3,Blackridge Works
-4,Glory Crossing
-5,Shuttle Gully
-6,Salvage Wharf
-7,Skyfall
-8,Twilight Foundry
-9,Crystal Rift
-10,Argent Towers
-11,Skerries
-12,Diamond Sands
-13,Ebony Coast
-14,Oyster Harbor
-15,Carrick Point
-16,Havoc District
-17,Ironstone Mine
-18,Beeton Tracks
-19,J-Bomb
-20,Jade Plateau
-21,Marine Quarter
-22,Cooter Creek
-23,Gibbon's Gate
-24,Baboon Catacomb
-25,Sleek Streets
-26,Obsidian Mile
-27,Corvine Bluff
-28,Sideswipe
-29,Echo Marches
-30,Kipling Plant
-31,Falchion Field
-32,Morgan Hall
-33,Tempest City
-34,Orion Plaza
-35,Glander's Ranch
-36,Dagger Pass
-37,Geode Square
-38,Shuttle Island
-39,Mica Park
-40,Moon
-41,Cobalt Quarry
-42,Moraine Chase
-43,Mercury
-44,Venus
-45,Mars
-46,Neptune
-47,CMO Intro
-48,Silver Junction
-49,End Sequence
-50,Shuttle Clear
-51,Dark Heartland
-52,Magma Peak
-53,Thunderfist
-54,Saline Watch
-55,Backlash
-56,Bison Ridge
-57,Ember Hamlet
-58,Cromlech Court
-59,Lizard Island
+0,Simian Acres,Edukativa
+1,Angel City,Metropoliko
+2,Outland Farm,Alternativa
+3,Blackridge Works,Grobstadt
+4,Glory Crossing,Katenaschlucht
+5,Shuttle Gully,Rammsterdamm
+6,Salvage Wharf,Hoffnungskai
+7,Skyfall,Turbobuggy
+8,Twilight Foundry,Großgießerei
+9,Crystal Rift,Kristallriss
+10,Argent Towers,Silberstadt
+11,Skerries,Immoturbo
+12,Diamond Sands,Diamantsand
+13,Ebony Coast,Elfenbeinküste
+14,Oyster Harbor,Austernhafen
+15,Carrick Point,Multiplia
+16,Havoc District,Chaosdistrikt
+17,Ironstone Mine,Eisenmine
+18,Beeton Tracks,Intercity
+19,J-Bomb,J-Bomb
+20,Jade Plateau,Jadeplateau
+21,Marine Quarter,Aqualonia
+22,Cooter Creek,Basalka
+23,Gibbon's Gate,Pactruck
+24,Baboon Catacomb,Katakombo
+25,Sleek Streets,Spiegelstraßen
+26,Obsidian Mile,Obsidianmeile
+27,Corvine Bluff,Bliffbluff
+28,Sideswipe,XR7-Protocrash
+29,Echo Marches,Echolaria
+30,Kipling Plant,Tempofabrik
+31,Falchion Field,Fataldemolage
+32,Morgan Hall,Kistenknall
+33,Tempest City,Tempcity
+34,Orion Plaza,Billiardboom
+35,Glander's Ranch,Glanderranch
+36,Dagger Pass,Stampfspektakel
+37,Geode Square,Kugeltrubel
+38,Shuttle Island,Shuttle-Insel
+39,Mica Park,Micapark
+40,Moon,Mond
+41,Cobalt Quarry,Cobaltrennen
+42,Moraine Chase,Dünensprint
+43,Mercury,Merkur
+44,Venus,Venus
+45,Mars,Mars
+46,Neptune,Neptun
+47,CMO Intro,CMO Intro
+48,Silver Junction,Kistensprint
+49,End Sequence,Endsequenz
+50,Shuttle Clear,Shuttlefrei
+51,Dark Heartland,Dunkelherz
+52,Magma Peak,Magmapool
+53,Thunderfist,Donnerfaust
+54,Saline Watch,Salinenfeuer
+55,Backlash,Monstertruck
+56,Bison Ridge,Bisonfurche
+57,Ember Hamlet,Emberham
+58,Cromlech Court,Saltonia
+59,Lizard Island,Echseninsel

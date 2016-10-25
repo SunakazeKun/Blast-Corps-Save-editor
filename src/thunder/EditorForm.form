@@ -143,9 +143,9 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pneGeneral" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="pneLevel" min="-2" max="-2" attributes="0"/>
-                  <Component id="pneScientists" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="pneLevel" max="32767" attributes="0"/>
+                  <Component id="pneScientists" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -655,16 +655,15 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" attributes="0">
+              <Group type="102" alignment="1" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" groupAlignment="1" attributes="0">
                       <Group type="102" attributes="0">
                           <Component id="lblLevel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Component id="cmoLevel" min="-2" pref="200" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          <Component id="cmoLevel" max="32767" attributes="0"/>
                       </Group>
-                      <Group type="102" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="lblLevelVehicle" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="lblLevelDishes" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -673,9 +672,9 @@
                           </Group>
                           <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="cmoLevelDishes" alignment="1" max="32767" attributes="0"/>
-                              <Component id="cmoLevelMedal" alignment="1" max="32767" attributes="0"/>
-                              <Component id="cmoLevelVehicle" max="32767" attributes="0"/>
+                              <Component id="btnLevelTimeSet" alignment="1" max="32767" attributes="0"/>
+                              <Component id="cmoLevelMedal" alignment="0" max="32767" attributes="0"/>
+                              <Component id="cmoLevelDishes" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="1" attributes="0">
                                   <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                   <Component id="spnLevelTimeMin" min="-2" max="-2" attributes="0"/>
@@ -688,14 +687,11 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="spnLevelTimeMil" min="-2" max="-2" attributes="0"/>
                               </Group>
+                              <Component id="cmoLevelVehicle" alignment="1" max="32767" attributes="0"/>
                           </Group>
                       </Group>
-                      <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                          <Component id="btnLevelTimeSet" min="-2" pref="133" max="-2" attributes="0"/>
-                      </Group>
                   </Group>
-                  <EmptySpace max="-2" attributes="0"/>
+                  <EmptySpace min="-2" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -730,9 +726,9 @@
                       <Component id="lblLevelTimeSep1" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="lblLevelTimeSep2" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="32767" attributes="0"/>
-                  <Component id="btnLevelTimeSet" min="-2" pref="18" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
+                  <Component id="btnLevelTimeSet" min="-2" pref="18" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -878,10 +874,13 @@
         <Component class="javax.swing.JSpinner" name="spnLevelTimeMin">
           <Properties>
             <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-              <SpinnerModel initial="0" maximum="50" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
+              <SpinnerModel initial="0" maximum="109" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spnLevelTimeMinStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JSpinner" name="spnLevelTimeSec">
           <Properties>
@@ -889,7 +888,16 @@
               <SpinnerModel initial="0" maximum="59" minimum="0" numberType="java.lang.Integer" stepSize="1" type="number"/>
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
+            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[47, 20]"/>
+            </Property>
+            <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+              <Dimension value="[47, 20]"/>
+            </Property>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spnLevelTimeSecStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JSpinner" name="spnLevelTimeMil">
           <Properties>
@@ -898,6 +906,9 @@
             </Property>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
+          <Events>
+            <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="spnLevelTimeMilStateChanged"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="lblLevelTimeSep1">
           <Properties>
@@ -939,13 +950,13 @@
                       <Component id="chkSArgentTowers" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="chkSIronstoneMine" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="25" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="1" attributes="0">
                       <Component id="chkSOysterHarbor" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="chkSEbonyCoast" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="chkSGloryCrossing" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="31" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>

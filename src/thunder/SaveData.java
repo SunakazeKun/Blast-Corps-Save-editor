@@ -1,18 +1,18 @@
 /*
-    Copyright (C) 2016 Aurum
-    
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+  Copyright (C) 2016 Aurum
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package thunder;
@@ -187,35 +187,43 @@ public class SaveData {
     
     public int[] getTime(int level) {
         byte[] b = ByteUtils.getBytesFromOffset(level * 4, 4, eep.levelTimes);
-        float f = (float) ByteUtils.bytesToInt(b) / 655360f;
+        int total = (int) ByteUtils.bytesToShort(b);
         
-        int minutes = (int) f / 60;
-        int seconds = (int) f - (minutes * 60);
-        int milliseconds = (int) ((f - (int) f) * 10);
+        int minutes = (total / 10) / 60;
+        int seconds = (total / 10) - minutes * 60;
+        int milliseconds = total - seconds * 10 - minutes * 600;
         
-        int[] time = {minutes, seconds, milliseconds};
-        return time;
+        return new int[] { minutes, seconds, milliseconds };
     }
     
-    public void setTime(int level, int minutes, int seconds, int milliseconds) {
-        float f = (minutes * 60f + seconds + milliseconds / 10f + 0.033f) * 655360f;
-        byte[] b = ByteUtils.intToBytes((int)f);
-        for (int i = 0 ; i < 4 ; i++)
-            eep.levelTimes[level * 4 + i] = b[i];
+    public void setTime(int level, int[] time) {
+        byte[] b = ByteUtils.intToBytes(time[0] * 600 + time[1] * 10 + time[2]);
+        
+        for (int i = 0 ; i < 2 ; i++)
+            eep.levelTimes[level * 4 + i] = b[i + 2];
+        
+        eep.levelTimes[level * 4 + 2] = (byte)(eep.levelTimes[level * 4] ^ 0x55);
+        
+        int checksum = 0xFF;
+        for (int i = 0; i < 3; i++)
+            checksum ^= eep.levelTimes[level * 4 + i];
+        eep.levelTimes[level * 4 + 3] = (byte) checksum;
     }
     
     public String getName() {
         String s = new String(eep.name).split("\u0000")[0];
-        s = s.replace("#","[0x23]");
-        s = s.replace("&","[0x26]");
-        s = s.replace("*","[0x2A]");
-        s = s.replace(String.valueOf((char)0x7F),"[0x7F]");
+        
+        s = s.replace(String.valueOf((char)0x23),"[0x23]"); // #
+        s = s.replace(String.valueOf((char)0x26),"[0x26]"); // &
+        s = s.replace(String.valueOf((char)0x2A),"[0x2A]"); // *
+        s = s.replace(String.valueOf((char)0x7F),"[0x7F]"); // DEL
         s = s.replace((char)0x61,'"');
         s = s.replace((char)0x62,'#');
         s = s.replace((char)0x64,'*');
         s = s.replace((char)0x65,'+');
         s = s.replace((char)0x6B,'=');
         s = s.replace((char)0x6D,'@');
+        
         return s;
     }
     
@@ -226,19 +234,17 @@ public class SaveData {
         s = s.replace('+',(char)0x65);
         s = s.replace('=',(char)0x6B);
         s = s.replace('@',(char)0x6D);
-        s = s.replace("[0x23]","#");
-        s = s.replace("[0x26]","&");
-        s = s.replace("[0x2A]","*");
-        s = s.replace("[0x7F]",String.valueOf((char)0x7F));
+        s = s.replace("[0x23]",String.valueOf((char)0x23)); // #
+        s = s.replace("[0x26]",String.valueOf((char)0x26)); // &
+        s = s.replace("[0x2A]",String.valueOf((char)0x2A)); // *
+        s = s.replace("[0x7F]",String.valueOf((char)0x7F)); // DEL
         
         s = s.replace("[","");
         s = s.replace("x","");
         s = s.replace("]","");
         
-        if (s.length() < 8) {
-            String sf = new String(new char[8 - s.length()]).replace("\0", "\u0000");
-            s += sf;
-        }
+        if (s.length() < 8)
+            s += new String(new char[8 - s.length()]).replace("\0", "\u0000");
         else if (s.length() >= 8)
             s = s.substring(0, Math.min(s.length(), 7)) + "\u0000";
         
@@ -353,8 +359,8 @@ public class SaveData {
     
     public short points, bronzeMedals, silverMedals, goldMedals, platinumMedals, carrierMedals;
     
-    public boolean hasAmericanDream, hasPoliceCar, hasATeamVan, hasHotrod, hasCrane, hasTrain, hasBoat1, hasBoat2, hasBoat3 = false;
     public boolean hasArgentTowers, hasIronstoneMine, hasTempestCity, hasOysterHarbor, hasEbonyCoast, hasGloryCrossing = false;
+    public boolean hasAmericanDream, hasPoliceCar, hasATeamVan, hasHotrod, hasCrane, hasTrain, hasBoat1, hasBoat2, hasBoat3 = false;
     
     private final int S_ARGENT_TOWERS = 1;
     private final int S_IRONSTONE_MINE = 2;
@@ -367,8 +373,8 @@ public class SaveData {
     private final int V_POLICE_CAR = 8192;
     private final int V_A_TEAM_VAN = 16384;
     private final int V_HOTROD = 32768;
-    private final int V_TRAIN = 128;
     private final int V_CRANE = 64;
+    private final int V_TRAIN = 128;
     private final int V_BOAT_1 = 2048;
     private final int V_BOAT_2 = 131072;
     private final int V_BOAT_3 = 262144;
@@ -399,9 +405,6 @@ public class SaveData {
         add(0x1A);  // Obsidian Mile
         add(0x1D);  // Echo Marches
         add(0x21);  // Tempest City
-        //add(0x26);  // Shuttle Island
-        //add(0x2F);  // CMO Intro
-        //add(0x31);  // End Sequence
         add(0x32);  // Shuttle Clear
         add(0x39);  // Ember Hamlet
         add(0x3A);  // Cromlech Court
