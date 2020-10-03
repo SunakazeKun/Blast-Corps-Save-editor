@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.json.simple.JSONArray;
@@ -75,7 +76,7 @@ public final class CommonAssets {
     public static void initLocalization() {
         try {
             String path = String.format("text/%s.json", BCSe.LOCALIZATION);
-            LOCALIZATION = (JSONObject)new JSONParser().parse(new InputStreamReader(openStream(path)));
+            LOCALIZATION = (JSONObject)new JSONParser().parse(new InputStreamReader(openStream(path), StandardCharsets.UTF_8));
         }
         catch (IOException | ParseException ex) {
             System.err.println(ex);

@@ -52,18 +52,20 @@ public class Eeprom512Data extends AbstractEepromData {
         name = "NEW GAME";
         unlockedVehiclesBits = DEFAULT_UNLOCKED_VEHICLES;
         levelMedals = new byte[NUM_LEVELS];
+        levelMedals[0x2F] = 0x05; // CMO Intro is finished
         levelPaths = new byte[NUM_LEVELS];
+        storyProgression = 0x01; // save file started
         levelVehicles = new byte[NUM_LEVELS];
         watchedTutorials = new byte[18];
         unkE0 = new byte[14];
         unkEF = new byte[4];
         unkF4 = new byte[8];
         levelTimes = new ClearTime[NUM_LEVELS];
-        languageSetting = LanguageSetting.Undefined;
+        languageSetting = BCSe.GAME_VERSION == GameVersion.PAL ? LanguageSetting.English : LanguageSetting.Undefined;
         saveType = SaveType.FromMenu;
         
         for (int i = 0 ; i < levelTimes.length ; i++)
-            levelTimes[i] = new ClearTime();
+            levelTimes[i] = GameUtil.isNonTimedLevel(i) ? null : new ClearTime();
         
         buffer = ByteBuffer.allocate(GameUtil.EEPROM512_SIZE);
     }

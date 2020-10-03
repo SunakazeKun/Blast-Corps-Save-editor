@@ -141,15 +141,13 @@ public final class GameUtil {
     
     //----------------------------------------------------------------------------------------------
     
-    // Indices for each medal time type. Used for getMedalTime(...).
-    public static final int MEDAL_TIME_BRONZE = 0;
-    public static final int MEDAL_TIME_SILVER = 1;
-    public static final int MEDAL_TIME_GOLD = 2;
-    public static final int MEDAL_TIME_PLATINUM = 3;
-    
     // The medal time requirements differ in each version. While the NTSC times are mostly the same
     // except for updated Platinum times, the PAL times are increased by 20% to account for that
     // version's slower frame rate.
+    public enum MedalTime {
+        Bronze, Silver, Gold, Platinum
+    }
+    
     private static final short[] MEDAL_TIMES_NTSC_U = loadMedalTimes("NTSC_U");
     private static final short[] MEDAL_TIMES_NTSC_J = loadMedalTimes("NTSC_J");
     private static final short[] MEDAL_TIMES_PAL = loadMedalTimes("PAL");
@@ -167,8 +165,8 @@ public final class GameUtil {
         return medalTimes;
     }
     
-    public static int getMedalTime(GameVersion gameVersion, int level, int type) {
-        int index = level * 4 + type;
+    public static int getMedalTime(GameVersion gameVersion, int level, MedalTime type) {
+        int index = level * 4 + type.ordinal();
         
         switch(gameVersion) {
             case NTSC_J: return MEDAL_TIMES_NTSC_J[index];

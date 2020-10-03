@@ -18,6 +18,7 @@ package com.aurum.bcse;
 
 import com.aurum.bcse.GameUtil.GameVersion;
 import com.aurum.bcse.GameUtil.LanguageSetting;
+import com.aurum.bcse.GameUtil.MedalTime;
 import com.aurum.bcse.GameUtil.SaveType;
 import java.awt.Component;
 import java.awt.Container;
@@ -97,11 +98,12 @@ public class Eeprom512Editor extends javax.swing.JFrame {
     
     private void initLocalization() {
         switch(BCSe.LOCALIZATION) {
-            case "en_us": radEnglish.setSelected(true); break;
-            case "de_de": radGerman.setSelected(true); break;
+            case "en_US": radEnglish.setSelected(true); break;
+            case "de_DE": radGerman.setSelected(true); break;
         }
         
         mnuFile.setText(CommonAssets.getText("editor.menu.file"));
+        mniNew.setText(CommonAssets.getText("editor.menu.file.new"));
         mniOpen.setText(CommonAssets.getText("editor.menu.file.open"));
         mniSave.setText(CommonAssets.getText("editor.menu.file.save"));
         mniSaveAs.setText(CommonAssets.getText("editor.menu.file.save_as"));
@@ -148,6 +150,8 @@ public class Eeprom512Editor extends javax.swing.JFrame {
         enableComponentsInContainer(state, pnlGeneral);
         enableComponentsInContainer(state, pnlLevel);
         enableComponentsInContainer(state, pnlScientists);
+        mniSave.setEnabled(state);
+        mniSaveAs.setEnabled(state);
         mniCheatAllTutorials.setEnabled(state);
         mniCheatComplete.setEnabled(state);
         mniCheatHelperVehicles.setEnabled(state);
@@ -164,6 +168,10 @@ public class Eeprom512Editor extends javax.swing.JFrame {
     
     private void showMessageDialog(int dialogType, String text) {
         JOptionPane.showMessageDialog(this, CommonAssets.getText(text), BCSe.TITLE, dialogType);
+    }
+    
+    private int showConfirmDialog(int dialogType, String text) {
+        return JOptionPane.showConfirmDialog(this, CommonAssets.getText(text), BCSe.TITLE, dialogType);
     }
     
     private void populateData() {
@@ -233,6 +241,15 @@ public class Eeprom512Editor extends javax.swing.JFrame {
         }
     }
     
+    final boolean dropChanges() {
+        boolean ret = true;
+        if (saveData != null) {
+            int result = showConfirmDialog(JOptionPane.YES_NO_OPTION, "editor.message.already_editing");
+            ret = result == JOptionPane.YES_OPTION;
+        }
+        return ret;
+    }
+    
     final void chooseSaveFile(String title) {
         final JFileChooser fc = new JFileChooser();
         fc.setDialogTitle(CommonAssets.getText(title));
@@ -251,11 +268,11 @@ public class Eeprom512Editor extends javax.swing.JFrame {
     }
     
     final void loadSaveDataFromFile() {
-        saveData = null;
-        timeLoaded = false;
-        
         if (saveFile == null)
             return;
+        
+        saveData = null;
+        timeLoaded = false;
         
         try (FileInputStream in = new FileInputStream(saveFile)) {
             int bufsize = in.available();
@@ -405,6 +422,7 @@ public class Eeprom512Editor extends javax.swing.JFrame {
         chkScientistOysterHarbor = new javax.swing.JCheckBox();
         mnbMain = new javax.swing.JMenuBar();
         mnuFile = new javax.swing.JMenu();
+        mniNew = new javax.swing.JMenuItem();
         mniOpen = new javax.swing.JMenuItem();
         mniSave = new javax.swing.JMenuItem();
         mniSaveAs = new javax.swing.JMenuItem();
@@ -915,6 +933,16 @@ public class Eeprom512Editor extends javax.swing.JFrame {
         mnuFile.setMnemonic('F');
         mnuFile.setText("File");
 
+        mniNew.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        mniNew.setMnemonic('N');
+        mniNew.setText("New");
+        mniNew.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mniNewActionPerformed(evt);
+            }
+        });
+        mnuFile.add(mniNew);
+
         mniOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         mniOpen.setMnemonic('O');
         mniOpen.setText("Open");
@@ -1112,13 +1140,26 @@ public class Eeprom512Editor extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         BCSe.saveSettings();
     }//GEN-LAST:event_formWindowClosing
+
+    private void mniNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniNewActionPerformed
+        if (dropChanges()) {
+            saveFile = null;
+            saveData = new Eeprom512Data();
+            populateData();
+            enableComponents(true);
+        }
+    }//GEN-LAST:event_mniNewActionPerformed
     
     private void mniOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniOpenActionPerformed
-        chooseSaveFile("editor.file_chooser.open");
-        loadSaveDataFromFile();
+        if (dropChanges()) {
+            chooseSaveFile("editor.file_chooser.open");
+            loadSaveDataFromFile();
+        }
     }//GEN-LAST:event_mniOpenActionPerformed
 
     private void mniSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniSaveActionPerformed
+        if (saveFile == null)
+            chooseSaveFile("editor.file_chooser.save");
         writeSaveDataToFile();
     }//GEN-LAST:event_mniSaveActionPerformed
 
@@ -1158,7 +1199,7 @@ public class Eeprom512Editor extends javax.swing.JFrame {
             System.arraycopy(GameUtil.COMPLETE_ALL_VEHICLES, 0, saveData.levelVehicles, 0, GameUtil.NUM_LEVELS);
             
             if (!GameUtil.isNonTimedLevel(i)) {
-                int medalTime = GameUtil.getMedalTime(BCSe.GAME_VERSION, i, GameUtil.MEDAL_TIME_PLATINUM);
+                int medalTime = GameUtil.getMedalTime(BCSe.GAME_VERSION, i, MedalTime.Platinum);
                 saveData.levelTimes[i].setTime(medalTime);
             }
         }
@@ -1356,6 +1397,7 @@ public class Eeprom512Editor extends javax.swing.JFrame {
     private javax.swing.JMenuItem mniCheatComplete;
     private javax.swing.JMenuItem mniCheatHelperVehicles;
     private javax.swing.JMenuItem mniExit;
+    private javax.swing.JMenuItem mniNew;
     private javax.swing.JMenuItem mniOpen;
     private javax.swing.JMenuItem mniSave;
     private javax.swing.JMenuItem mniSaveAs;
