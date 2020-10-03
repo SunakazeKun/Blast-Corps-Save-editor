@@ -1,5 +1,4 @@
-# Blast Corps Savegame Editor
-An editor for Blast Corps EEPROM savegame files. This program requires JRE7!
-Huge thanks to queueRAM for figuring out how checksums work.
+# BCSe -- Blast Corps Savegame Editor
+A save game editor for Blast Corps EEPROM512 files. Huge thanks to [queueRAM](https://github.com/queueRAM) for figuring out the checksum calculation. He also ripped all used sprites from the game's ROM. This project uses the [JSON.simple library](https://code.google.com/archive/p/json-simple/).
 
-![Screenshot](http://neomariogalaxy.bplaced.net/data/pictures/BCSE-04.png)
+![Screenshot](screenshot.png)
